@@ -44,7 +44,7 @@ jobs:
         cd $BUILDDIR
         chmod -R 755 $PACKAGEDIR
         dpkg-deb --build snapraid_package mos-snapraid_${SNAPRAID_V#v}_amd64.deb
-        md5sum $BUILDDIR/mos-snapraid_${SNAPRAID_V#v}_amd64.deb | awk '{print $2}' > $BUILDDIR/mos-snapraid_${SNAPRAID_V#v}_amd64.deb.md5
+        md5sum $BUILDDIR/mos-snapraid_${SNAPRAID_V#v}_amd64.deb | awk '{print $1}' > $BUILDDIR/mos-snapraid_${SNAPRAID_V#v}_amd64.deb.md5
 
         echo "SNAPRAID_V=${SNAPRAID_V#v}
         BUILDDIR=$BUILDDIR" >> $GITHUB_ENV
