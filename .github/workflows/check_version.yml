@@ -27,8 +27,8 @@ jobs:
           exit 1
         fi
         
-        if [ "$SNAPRAID_V" != "$AVAILABLE_V" ]; then
-          echo "Newer version found: $SNAPRAID_V"
+        if [ "${SNAPRAID_V#v}" != "${AVAILABLE_V}" ]; then
+          echo "Newer version found: v${SNAPRAID_V#v}"
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
