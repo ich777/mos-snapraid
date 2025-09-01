@@ -33,6 +33,14 @@ jobs:
         make -j20
         DESTDIR=$PACKAGEDIR make install
 
+        cat > $PACKAGEDIR/DEBIAN/control << EOF
+        Package: SnapRAID
+        Version: ${SNAPRAID_V#v}
+        Architecture: amd64
+        Maintainer: admin@minenet.at
+        Description: Custom SnapRAID build for MOS
+        EOF
+
         cd $BUILDDIR
         chmod -R 755 $PACKAGEDIR
         dpkg-deb --build snapraid_package mos-snapraid_${SNAPRAID_V#v}_amd64.deb
