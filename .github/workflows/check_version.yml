@@ -1,0 +1,42 @@
+name: Check Version
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'  # Alle 6 Stunden
+  workflow_dispatch:
+
+jobs:
+  check_version:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check version
+      run: |
+        # Get version from SnapRAID
+        SNAPRAID_V=$(curl -s \
+          -H "Authorization: Baerer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/amadvance/snapraid/releases/latest" | jq -r '.tag_name')
+        
+        # Get version from this repo
+        AVAILABLE_V=$(curl -s \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
+
+        # Check if versions are empty or null
+        if [ -z "$SNAPRAID_V" ] || [ "$SNAPRAID_V" = "null" ] || [ -z "$AVAILABLE_V" ] || [ "$AVAILABLE_V" = "null" ]; then
+          echo "Couldn't get Version numbers"
+          exit 1
+        fi
+
+        if [ "$SNAPRAID_V" != "$AVAILABLE_V" ]; then
+          echo "Newer version found: $SNAPRAID_V"
+
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/snapraid.yml/dispatches" \
+            -d "{\"ref\":\"main\"}")
+        else
+          echo "Nothing to do"
+        fi
