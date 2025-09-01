@@ -1,0 +1,82 @@
+name: Snapraid Compile
+
+on:
+  # Allow to trigger action manually
+  workflow_dispatch:
+
+jobs:
+  build_snapraid:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+
+    - name: Install dependencies
+      run: apt-get update && apt-get -y install dh-autoreconf build-essential jq xz-utils git
+
+    - name: Compile SnapRAID
+      run: |
+        # Get SnapRAID version and create necessary directories
+        SNAPRAID_V=$(curl -u ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} https://api.github.com/repos/amadvance/snapraid/releases/latest | jq -r '.tag_name')
+        BUILDDIR=${{ github.workspace }}/$SNAPRAID_V
+        PACKAGEDIR=$BUILDDIR/snapraid_package
+        mkdir -p $PACKAGEDIR/DEBIAN
+
+        cd $BUILDDIR
+        git clone --branch $SNAPRAID_V --single-branch --depth 1 https://github.com/amadvance/snapraid.git
+        cd $BUILDDIR/snapraid
+        ./autogen.sh
+        ./configure LDFLAGS="-static"
+        make -j20
+        DESTDIR=$PACKAGEDIR make install
+
+        cd $BUILDDIR
+        chmod -R 755 $PACKAGEDIR
+        dpkg-deb --build snapraid_package mos-snapraid_${SNAPRAID_V#v}_amd64.deb
+        md5sum $BUILDDIR/mos-snapraid_${SNAPRAID_V#v}_amd64.deb | awk '{print $2}' > $BUILDDIR/mos-snapraid_${SNAPRAID_V#v}_amd64.deb.md5
+
+        echo "SNAPRAID_V=${SNAPRAID_V#v}
+        BUILDDIR=$BUILDDIR" >> $GITHUB_ENV
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.SNAPRAID_V }}
+        release_name: "SnapRAID ${{ env.SNAPRAID_V }}"
+        body: |
+          This is the custom Debian package from SnapRAID for MOS
+
+          ### Package contents:
+          - [SnapRAID](https://github.com/amadvance/snapraid) v${{ env.SNAPRAID_V }}
+        draft: false
+        prerelease: false
+
+    - name: Upload deb to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.BUILDDIR }}/mos-snapraid_${{ env.SNAPRAID_V }}_amd64.deb
+        asset_name: mos-snapraid_${{ env.SNAPRAID_V }}_amd64.deb
+        asset_content_type: application/vnd.debian.binary-package
+
+    - name: Upload md5 to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.BUILDDIR }}/mos-snapraid_${{ env.SNAPRAID_V }}_amd64.deb.md5
+        asset_name: mos-snapraid_${{ env.SNAPRAID_V }}_amd64.deb.md5
+        asset_content_type: text/plain
+
+    - name: Cleanup
+      if: always()
+      run: rm -rf ${{ github.workspace }}/* ${{ github.workspace }}/.*
