@@ -35,7 +35,7 @@ jobs:
 
         cat > $PACKAGEDIR/DEBIAN/control << EOF
         Package: SnapRAID
-        Version: ${SNAPRAID_V#v}
+        Version: ${SNAPRAID_V#v}-mos
         Architecture: amd64
         Maintainer: admin@minenet.at
         Description: Custom SnapRAID build for MOS
