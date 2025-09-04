@@ -23,7 +23,10 @@ jobs:
         SNAPRAID_V=$(curl -u ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} https://api.github.com/repos/amadvance/snapraid/releases/latest | jq -r '.tag_name')
         BUILDDIR=${{ github.workspace }}/$SNAPRAID_V
         PACKAGEDIR=$BUILDDIR/snapraid_package
-        mkdir -p $PACKAGEDIR/DEBIAN
+        mkdir -p $PACKAGEDIR/DEBIAN $PACKAGEDIR/usr/share/doc/mos-snapraid
+
+        # Add initial copyright to package dir:
+        echo -e "This package contains software under various licenses.\nSee the following files for details:\n" > $PACKAGEDIR/usr/share/doc/mos-snapraid/copyright
 
         cd $BUILDDIR
         git clone --branch $SNAPRAID_V --single-branch --depth 1 https://github.com/amadvance/snapraid.git
@@ -32,6 +35,14 @@ jobs:
         ./configure LDFLAGS="-static"
         make -j20
         DESTDIR=$PACKAGEDIR make install
+
+        # Add licenses
+        cp "${{ github.workspace }}/LICENSE" "$PACKAGEDIR/usr/share/doc/mos-snapraid/LICENSE"
+        echo -e "- LICENSE: License for packaging scripts" >> $PACKAGEDIR/usr/share/doc/mos-snapraid/copyright
+        cp $BUILDDIR/snapraid/COPYING $PACKAGEDIR/usr/share/doc/mos-snapraid/LICENSE-snapraid
+        echo -e "- LICENSE-snapraid: License for snapraid components" >> $PACKAGEDIR/usr/share/doc/mos-snapraid/copyright
+        cp $BUILDDIR/snapraid/tommyds/LICENSE $PACKAGEDIR/usr/share/doc/mos-snapraid/LICENSE-tommyds
+        echo -e "- LICENSE-tommyds: License for tommyds components" >> $PACKAGEDIR/usr/share/doc/mos-snapraid/copyright
 
         cat > $PACKAGEDIR/DEBIAN/control << EOF
         Package: SnapRAID
