@@ -28,5 +28,7 @@ SnapRAID itself is licensed under its respective upstream license.
 
 ## Third-Party Software
 
+This repository builds and packages third-party open-source software.
 Packaged components remain licensed under their original upstream licenses.
-License texts are shipped with the generated packages.
+
+Refer to `THIRD_PARTY.md` for details.
