@@ -34,7 +34,7 @@ jobs:
         git clone --branch $SNAPRAID_V --single-branch --depth 1 https://github.com/amadvance/snapraid.git
         cd $BUILDDIR/snapraid
         ./autogen.sh
-        ./configure LDFLAGS="-static"
+        ./configure LDFLAGS="-static -Wl,--allow-multiple-definition"
         make -j$(nproc --all)
         DESTDIR=$PACKAGEDIR make install
 
