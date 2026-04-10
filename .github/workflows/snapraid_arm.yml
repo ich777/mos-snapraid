@@ -42,9 +42,9 @@ jobs:
         cp "${{ github.workspace }}/LICENSE" "$PACKAGEDIR/usr/share/doc/mos-snapraid/LICENSE"
         echo -e "- LICENSE: License for packaging scripts" >> $PACKAGEDIR/usr/share/doc/mos-snapraid/copyright
         cp $BUILDDIR/snapraid/LICENSES/GPL-3.0 $PACKAGEDIR/usr/share/doc/mos-snapraid/LICENSE-snapraid
-        echo -e "- LICENSE-snapraid: License for snapraid generation and verification" >> $PACKAGEDIR/usr/share/doc/mos-snapraid/copyright
-        cp $BUILDDIR/snapraid/LICENSES/GPL-2.0 $PACKAGEDIR/usr/share/doc/mos-snapraid/LICENSE-snapraid_parity
         echo -e "- LICENSE-snapraid: License for snapraid components" >> $PACKAGEDIR/usr/share/doc/mos-snapraid/copyright
+        cp $BUILDDIR/snapraid/LICENSES/GPL-2.0 $PACKAGEDIR/usr/share/doc/mos-snapraid/LICENSE-snapraid_parity
+        echo -e "- LICENSE-snapraid_parity: License for snapraid generation and verification" >> $PACKAGEDIR/usr/share/doc/mos-snapraid/copyright
         cp $BUILDDIR/snapraid/LICENSES/BSD-2-Clause $PACKAGEDIR/usr/share/doc/mos-snapraid/LICENSE-tommyds
         echo -e "- LICENSE-tommyds: License for tommyds components" >> $PACKAGEDIR/usr/share/doc/mos-snapraid/copyright
 
